@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# This project is licensed under the MIT License (see LICENSE).
+
+set -eu
+
+usage() {
+    echo 'usage: zram-swap command
+
+commands:
+  setup   Setup devices
+  remove  Remove devices
+  on      Turn on devices
+  off     Turn off devices
+  status  Show status of devices'
+}
+
+setup() {
+    ncpu=$(nproc)
+    nram=$(free -b | awk '/^Mem:/ {print $2}')
+    size=$((nram / ncpu))
+
+    modprobe zram num_devices="$ncpu"
+
+    for i in $(seq 0 $((ncpu - 1))); do
+        name="zram$i"
+        zramctl "$name" -a lz4 -t "$ncpu" -s "$size"
+        mkswap -L "$name" /dev/"$name"
+    done
+}
+
+remove() {
+    zramctl -r /dev/zram*
+    rmmod zram
+}
+
+on() {
+    for f in /dev/zram*; do
+        swapon -p 32767 "$f"
+    done
+}
+
+off() {
+    for f in /dev/zram*; do
+        swapoff "$f"
+    done
+}
+
+status() {
+    swapon | awk 'NR==1 || /^\/dev\/zram/'
+    exit
+}
+
+[ $# -eq 0 ] && status
+
+case "$1" in
+    setup) setup && on ;;
+    remove) off && remove ;;
+    on) on ;;
+    off) off ;;
+    status) status ;;
+    *) usage >&2; exit 2
+esac

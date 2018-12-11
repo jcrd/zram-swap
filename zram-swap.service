@@ -1,0 +1,12 @@
+[Unit]
+Description=Setup zram swap devices
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/zram-swap setup
+ExecStop=/usr/bin/zram-swap remove
+
+[Install]
+WantedBy=local-fs.target
