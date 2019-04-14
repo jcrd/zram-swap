@@ -24,7 +24,7 @@ setup() {
 
     for i in $(seq 0 $((ncpu - 1))); do
         name="zram$i"
-        zramctl "$name" -a lz4 -t "$ncpu" -s "$size"
+        zramctl "$name" -a lz4 -s "$size"
         mkswap -L "$name" /dev/"$name"
     done
 }
