@@ -1,11 +1,11 @@
 [Unit]
-Description=Setup a single zram swap device
+Description=Setup a zram swap device per CPU
 After=local-fs.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/bin/zram-swap setup
+ExecStart=/usr/bin/zram-swap setup-per-cpu
 ExecStop=/usr/bin/zram-swap remove
 
 [Install]

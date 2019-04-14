@@ -1,9 +1,8 @@
 # zram-swap
 
 zram-swap is a simple script that manages `zram` devices for use as swap.
-It creates as many devices as there are available processing units, as reported
-by `nproc`, and divides total memory among them, making swap space equal to RAM.
-This behavior is not configurable.
+It can create a single device the size of available RAM, or divide the size
+between as many devices as there are CPUs, as reported by `nproc`.
 
 ## Usage
 
@@ -11,16 +10,21 @@ This behavior is not configurable.
 usage: zram-swap command
 
 commands:
-  setup   Setup devices
-  remove  Remove devices
-  on      Turn on devices
-  off     Turn off devices
-  status  Show status of devices
+  setup         Setup single device
+  setup-per-cpu Setup a device per CPU
+  remove        Remove devices
+  on            Turn on devices
+  off           Turn off devices
+  status        Show status of devices
 ```
 
-zram-swap also provides a **systemd** service for automatic setup at boot:
+### systemd
 
-`systemctl enable zram-swap`
+zram-swap also provides two **systemd** services for automatic setup at boot.
+
+For a single zram swap device: `systemctl enable zram-swap`
+
+For a zram swap device per CPU: `systemctl enable zram-swap-per-cpu`
 
 ## License
 

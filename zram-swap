@@ -8,25 +8,31 @@ usage() {
     echo 'usage: zram-swap command
 
 commands:
-  setup   Setup devices
-  remove  Remove devices
-  on      Turn on devices
-  off     Turn off devices
-  status  Show status of devices'
+  setup         Setup single device
+  setup-per-cpu Setup a device per CPU
+  remove        Remove devices
+  on            Turn on devices
+  off           Turn off devices
+  status        Show status of devices'
 }
 
 setup() {
     ncpu=$(nproc)
     nram=$(free -b | awk '/^Mem:/ {print $2}')
-    size=$((nram / ncpu))
 
-    modprobe zram num_devices="$ncpu"
-
-    for i in $(seq 0 $((ncpu - 1))); do
-        name="zram$i"
-        zramctl "$name" -a lz4 -s "$size"
-        mkswap -L "$name" /dev/"$name"
-    done
+    if [ "$1" = "true" ]; then
+        modprobe zram num_devices="$ncpu"
+        size=$((nram / ncpu))
+        for i in $(seq 0 $((ncpu - 1))); do
+            name="zram$i"
+            zramctl "$name" -a lz4 -t "$ncpu" -s "$size"
+            mkswap -L "$name" /dev/"$name"
+        done
+    else
+        modprobe zram num_devices=1
+        zramctl "zram0" -a lz4 -s "$nram"
+        mkswap -L "zram0" /dev/zram0
+    fi
 }
 
 remove() {
@@ -54,7 +60,8 @@ status() {
 [ $# -eq 0 ] && status
 
 case "$1" in
-    setup) setup && on ;;
+    setup) setup false && on ;;
+    setup-per-cpu) setup true && on ;;
     remove) off && remove ;;
     on) on ;;
     off) off ;;
